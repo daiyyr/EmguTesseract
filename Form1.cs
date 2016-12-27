@@ -29,7 +29,7 @@ namespace EmguTesseract
         decimal failed = 0;
         decimal rate = 0;
         int count = 0;
-
+        Bitmap bm;
         
         bool USE_AdaptiveThreshold = false;
         int AdaptiveblockSize = 35;
@@ -38,9 +38,10 @@ namespace EmguTesseract
         int scale = 1;
         int medianBlurBlurKsize = 3;
 
-        int dgGrayValue = 158; //值越小，擦除力度越大；当值大于255时, 无法过滤任何点
+        string language = "wha";
+        int dgGrayValue = 100; //值越小，擦除力度越大；当值大于255时, 无法过滤任何点
         int maxNearPoints = 4; //值越大，擦除力度越大
-        int testTimes = 300;
+        int testTimes = 1500;
         //scale = 1; USE_AdaptiveThreshold = false && BlurKsize = 5, rate = %46
         //scale = 2; USE_AdaptiveThreshold = false && BlurKsize = 9, rate = %40 ?
         //scale 3, USE_AdaptiveThreshold False, BlurKsize 13, succeed 504, failed 496, rate 50.40%
@@ -59,13 +60,129 @@ namespace EmguTesseract
         //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 80;  maxNearPoints 4, succeed:192, failed: 108, rate: 64.00%
         //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 150;  maxNearPoints 4, test 30, rate: 70.00%
         //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 158;  maxNearPoints 4, test 30, rate: 60.00%
+        //using 300 trained data, ClearNoiseByVolidPoint ONLY, dgGrayValue 130;  maxNearPoints 4, succeed: 90, failed: 83, rate: 52.02%
+        //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 130;  maxNearPoints 4, succeed:192, failed: 108, rate: 64.00%
+        //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 100;  maxNearPoints 4, succeed: 76, failed: 45, rate: 62.81%
+        //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue 100;  maxNearPoints 4, succeed: 121, failed: 65, rate: 65.05%
+        //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue=100, maxNearPoints=4, succeed:194, failed: 106, rate: 64.67%
+        //using eng data, ClearNoiseByVolidPoint ONLY, dgGrayValue=100, maxNearPoints=4, succeed:343, failed: 157, rate: 68.60%
+        //using 100 trained wha data, ClearNoiseByVolidPoint ONLY, dgGrayValue=100, maxNearPoints=4, succeed:370, failed: 130, rate: 74.00%
+        //using 100 trained wha data, ClearNoiseByVolidPoint ONLY, dgGrayValue=150, maxNearPoints=4, test 300, rate: 50.00%
+        //using 100 trained wha data, ClearNoiseByVolidPoint ONLY, dgGrayValue=125, maxNearPoints=4, succeed:352, failed: 148, rate: 70.40%
+        //using 200 trained wha data, ClearNoiseByVolidPoint ONLY, dgGrayValue=100, maxNearPoints=4, succeed:356, failed: 144, rate: 71.20%
 
+
+        //dgGrayValue80 - 150训练前正确率差不多，应该选择降噪程度较高的（比如100），因为字母被侵蚀后是规律的，可以通过训练认识被侵蚀后的字母，而噪点是不规律的，字母被加噪点后无法训练
 
         public Form1()
         {
             InitializeComponent();
             path = System.Environment.CurrentDirectory + "\\" + "codePictures";
             System.IO.Directory.CreateDirectory(path);
+        }
+
+        public void start()
+        {
+
+
+            for (int i = 0; i < testTimes; i++)
+            {
+
+                if (gForceToStop)
+                    return;
+
+                count++;
+                setLogT(0, "test " + count);
+
+                string gViewstate = "zN6xXaY%2FnQNmaaIlERdi7LQl%2BBtTJSWlQckAPk" +
+                                        "%2B4oQpDovIGW80RqFi8gdy3WhVH9%2FaN7mJd%2BMEmlZBEsSF%2ByOrvGBQmXgcDAi%2BO9AZeeh%2FvK93W1m3x4J2IF47SmIiHIhH2iS" +
+                                        "%2For3foC1jhAbq3mE2y7gVlT2PW0PVHQcOWIyTnacwRm1yz7MUOv0C4D6ErgIGBblYp1Eq%2FkCbk1RwOkYRsHTE9jCaRPaEdsfmgDXqVo2Jj44CXh7DJpwpTz" +
+                                        "%2B9Kce5uTWQgsAeK63DU2oIDGuqRS%2BDFuwERMTl0bhGpkJQ6lURgByidtd%2FpdAi5OaiK2%2BYBbueGbIYCnxcBiQqswxO4IUTWj9dFUHiiVkSlbPdZ6Fqc4JsiEP6WTb2zKy7BtsceJJmN59AQAGFBNLYQSAD1A8k" +
+                                        "%2BDekyhJ5Vp65n8SHJKcu3gTh32VGAWhiailxZioWVkiJZZsWb6tp6M1Uo%2FFdZj8Ol8Y2gRFt2hjRJzs%2FhD0gzkllIOqPWIgoD9vn9" +
+                                        "%2B2qUiBdHIWE%3D";
+                string gEventvalidation = "MfAzSYnx%2FBo9NlbEJZGqAfsO1qbH2Pbq2qGK8OTeqfnJLJ52qCApEepqQ%2BUvWVZdGuavmxNvymnyQeocxo4k3Q%3D%3D";
+                int gTicket = 1;
+                string respHtml = weLoveYue(
+                    0,
+                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
+                    "POST",
+                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
+                    true,
+                    "__EVENTTARGET=ctl00%24plhMain%24lnkPrintApp"
+                    + "&__EVENTARGUMENT="
+                    + "&__VIEWSTATE=" + gViewstate
+                    + "&____Ticket=" + gTicket.ToString()
+                    + "&__EVENTVALIDATION=" + gEventvalidation
+                );
+                gTicket++;
+
+                reg = @"(?<=name=""__EVENTVALIDATION"" id=""__EVENTVALIDATION"" value="").*?(?="" />)";
+                myMatch = (new Regex(reg)).Match(respHtml);
+                if (myMatch.Success)
+                {
+                    gEventvalidation = ToUrlEncode(myMatch.Groups[0].Value);
+
+                }
+                else
+                {
+                    goto exception;
+                }
+
+                reg = @"(?<=id=""__VIEWSTATE"" value="").*?(?="" />)";
+                myMatch = (new Regex(reg)).Match(respHtml);
+                if (myMatch.Success)
+                {
+                    gViewstate = ToUrlEncode(myMatch.Groups[0].Value);
+                }
+                else
+                {
+                    goto exception;
+                }
+
+                string cCodeGuid = "";
+                reg = @"(?<=MyCaptchaImage.aspx\?guid=).*?(?="" border=)";
+                myMatch = (new Regex(reg)).Match(respHtml);
+                if (myMatch.Success)
+                {
+                    cCodeGuid = myMatch.Groups[0].Value;
+                }
+                string imageUrl = @"https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/MyCaptchaImage.aspx?guid=" + cCodeGuid;
+
+                if (downloadImage(imageUrl))
+                {
+                    string code = processOCR(path + "\\" + fileName);
+
+                    Thread.Sleep(2000);//否则服务器认为验证码是错的
+
+                    respHtml = weLoveYue(
+                    0,
+                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/EmailRegistration.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
+                    "POST",
+                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
+                    false,
+                    "__VIEWSTATE=" + gViewstate
+                    + "&ctl00%24plhMain%24ImageButton1=Submit&____Ticket=" + gTicket.ToString()
+                    + "&__EVENTVALIDATION=" + gEventvalidation
+                    + "&ctl00%24plhMain%24mycaptchacontrol1=" + code
+                    + "&ctl00%24plhMain%24txtEmailID=" + "15985830370@163.com"
+                    + "&ctl00%24plhMain%24txtPassword=" + "mushroom123"
+                    );
+                    processResult(respHtml, code);
+                }
+
+                continue;
+
+            exception:
+                setLogT(0, "page response error, try again...");
+                continue;
+            }
+
+            setLogT(0, 
+                "using " + language + " data, ClearNoiseByVolidPoint ONLY" +
+                ", dgGrayValue=" + dgGrayValue +
+                ", maxNearPoints=" + maxNearPoints +
+                ", succeed:" + succeed + ", failed: " + failed + ", rate: " + rate.ToString("p"));
+            return;
         }
 
         public bool downloadImage(string url)
@@ -75,7 +192,7 @@ namespace EmguTesseract
                 WebRequest requestPic = WebRequest.Create(url);
                 WebResponse responsePic = requestPic.GetResponse();
                 Image webImage = Image.FromStream(responsePic.GetResponseStream()); // Error
-                fileName = "vCode" + System.DateTime.Now.ToString("yyyyMMddHHmmss", DateTimeFormatInfo.InvariantInfo) + ".jpg";
+                fileName = "vCode" + System.DateTime.Now.ToString("yyyyMMddHHmmss", DateTimeFormatInfo.InvariantInfo) + ".tiff";
                 webImage.Save(path + "\\" + fileName);
             }
             catch (Exception ex)
@@ -100,7 +217,7 @@ namespace EmguTesseract
 
 
 
-                Bitmap bm = new Bitmap(Image.FromFile(file));
+                bm = new Bitmap(Image.FromFile(file));
                 setImage1(new Image<Gray, byte>(bm));
                 // 水平垂直切割
                 //           ImageProcessor.CutVerticality(bm, 1);
@@ -135,7 +252,7 @@ namespace EmguTesseract
 
                 using (var engine = new TesseractEngine(
                     @"C:\Users\yangyiru\Documents\visual studio 2012\Projects\EmguTesseract\EmguTesseract\tessdata",
-                    "eng", EngineMode.Default))
+                    language, EngineMode.Default))
                 {
                     engine.SetVariable("tessedit_char_whitelist", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
                     engine.SetVariable("textord_min_xheight", 28);
@@ -166,23 +283,20 @@ namespace EmguTesseract
             {
                 failed++;
 
-                //System.IO.File.Move(path + "\\" + "afterblur" + fileName,
+                //System.IO.File.Copy(path + "\\" + "afterblur" + fileName,
                 //    path + "\\" + "wrong" + "afterblur" + fileName);
-                
-                rate = succeed / (succeed + failed);
-                
+
+                bm.Save(path + "\\" + "fault" + fileName, System.Drawing.Imaging.ImageFormat.Tiff);
                 setLable1Red("failed");
-                setLogT(0, "code: " + code + ", succeed: " + succeed + ", failed: " + failed + ", rate: " + rate.ToString("p"));
-            return;
             }
-            if (Html.Contains("Record with specified details does not exists"))
+            else if (Html.Contains("Record with specified details does not exists"))
             {
                 succeed++;
-                rate = succeed / (succeed + failed);
                 setLable1Green("succeed");
-                setLogT(0, "code: " + code + ", succeed: " + succeed + ", failed: " + failed + ", rate: " + rate.ToString("p"));
-                return;
             }
+            rate = succeed / (succeed + failed);
+            setLogT(0, "code: " + code + ", succeed: " + succeed + ", failed: " + failed + ", rate: " + rate.ToString("p"));
+            setLable7(rate.ToString("p"));
         }
 
         #region from http://www.cnblogs.com/yuanbao/archive/2007/11/14/958488.html
@@ -278,116 +392,6 @@ namespace EmguTesseract
         }
         #endregion
 
-        public void start()
-        {
-            
-
-            for (int i = 0; i < testTimes; i++)
-            {
-                
-                if (gForceToStop)
-                    return;
-
-                count++;
-                setLogT(0, "test " + count);
-                
-                string gViewstate = "zN6xXaY%2FnQNmaaIlERdi7LQl%2BBtTJSWlQckAPk" +
-                                        "%2B4oQpDovIGW80RqFi8gdy3WhVH9%2FaN7mJd%2BMEmlZBEsSF%2ByOrvGBQmXgcDAi%2BO9AZeeh%2FvK93W1m3x4J2IF47SmIiHIhH2iS" +
-                                        "%2For3foC1jhAbq3mE2y7gVlT2PW0PVHQcOWIyTnacwRm1yz7MUOv0C4D6ErgIGBblYp1Eq%2FkCbk1RwOkYRsHTE9jCaRPaEdsfmgDXqVo2Jj44CXh7DJpwpTz" +
-                                        "%2B9Kce5uTWQgsAeK63DU2oIDGuqRS%2BDFuwERMTl0bhGpkJQ6lURgByidtd%2FpdAi5OaiK2%2BYBbueGbIYCnxcBiQqswxO4IUTWj9dFUHiiVkSlbPdZ6Fqc4JsiEP6WTb2zKy7BtsceJJmN59AQAGFBNLYQSAD1A8k" +
-                                        "%2BDekyhJ5Vp65n8SHJKcu3gTh32VGAWhiailxZioWVkiJZZsWb6tp6M1Uo%2FFdZj8Ol8Y2gRFt2hjRJzs%2FhD0gzkllIOqPWIgoD9vn9" +
-                                        "%2B2qUiBdHIWE%3D";
-                string gEventvalidation = "MfAzSYnx%2FBo9NlbEJZGqAfsO1qbH2Pbq2qGK8OTeqfnJLJ52qCApEepqQ%2BUvWVZdGuavmxNvymnyQeocxo4k3Q%3D%3D";
-                int gTicket = 1;
-                string respHtml = weLoveYue(
-                    0,
-                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
-                    "POST",
-                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
-                    true,
-                    "__EVENTTARGET=ctl00%24plhMain%24lnkPrintApp"
-                    + "&__EVENTARGUMENT="
-                    + "&__VIEWSTATE=" + gViewstate
-                    + "&____Ticket=" + gTicket.ToString()
-                    + "&__EVENTVALIDATION=" + gEventvalidation
-                );
-                gTicket++;
-
-                reg = @"(?<=name=""__EVENTVALIDATION"" id=""__EVENTVALIDATION"" value="").*?(?="" />)";
-                myMatch = (new Regex(reg)).Match(respHtml);
-                if (myMatch.Success)
-                {
-                    gEventvalidation = ToUrlEncode(myMatch.Groups[0].Value);
-
-                }
-                else
-                {
-                    goto exception;
-                }
-
-                reg = @"(?<=id=""__VIEWSTATE"" value="").*?(?="" />)";
-                myMatch = (new Regex(reg)).Match(respHtml);
-                if (myMatch.Success)
-                {
-                    gViewstate = ToUrlEncode(myMatch.Groups[0].Value);
-                }
-                else
-                {
-                    goto exception;
-                }
-
-                string cCodeGuid = "";
-                reg = @"(?<=MyCaptchaImage.aspx\?guid=).*?(?="" border=)";
-                myMatch = (new Regex(reg)).Match(respHtml);
-                if (myMatch.Success)
-                {
-                    cCodeGuid = myMatch.Groups[0].Value;
-                }
-                string imageUrl = @"https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/MyCaptchaImage.aspx?guid=" + cCodeGuid;
-
-                if (downloadImage(imageUrl))
-                {
-                    string code = processOCR(path + "\\" + fileName);
-
-                    Thread.Sleep(2000);//否则服务器认为验证码是错的
-
-                    respHtml = weLoveYue(
-                    0,
-                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/EmailRegistration.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
-                    "POST",
-                    "https://www.visaservices.in/DIAC-China-Appointment_new/AppScheduling/AppWelcome.aspx?p=sPcgcjykQzBJn3ZQhoWvHUCcn911JlTQwOXWcGhM4%2fE%3d",
-                    false,
-                    "__VIEWSTATE=" + gViewstate
-                    + "&ctl00%24plhMain%24ImageButton1=Submit&____Ticket=" + gTicket.ToString()
-                    + "&__EVENTVALIDATION=" + gEventvalidation
-                    + "&ctl00%24plhMain%24mycaptchacontrol1=" + code
-                    + "&ctl00%24plhMain%24txtEmailID=" + "15985830370@163.com"
-                    + "&ctl00%24plhMain%24txtPassword=" + "mushroom123"
-                    );
-                    processResult(respHtml, code);
-                }
-                
-                continue;
-
-            exception:
-                setLogT(0, "page response error, try again..." );
-                continue;
-            }
-
-            setLogT(0, "scale: " + scale +
-                ", nBlockSize=" + nBlockSize +
-                ", USE_AdaptiveThreshold=" + USE_AdaptiveThreshold +
-                ", BlurKsize=" + medianBlurBlurKsize +
-                ", succeed:" + succeed + ", failed: " + failed + ", rate: " + rate.ToString("p"));
-            return;
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            gForceToStop = false;
-            ThreadStart starter = delegate { start(); };
-            new Thread(starter).Start();
-        }
 
 
 
@@ -533,7 +537,9 @@ namespace EmguTesseract
                 return resp.StatusDescription;
             }
         }
+#endregion
 
+        #region tools
         public delegate void setLog(int threadNo, string str1);
         public void setLogT(int threadNo, string s)
         {
@@ -554,7 +560,7 @@ namespace EmguTesseract
         {
             setLog sl = new setLog(delegate(int number, string text)
             {
-                textBox2.Text = text;        
+                textBox2.Text = text;
             });
             textBox2.Invoke(sl, 0, s);
         }
@@ -576,7 +582,14 @@ namespace EmguTesseract
             });
             textBox2.Invoke(sl, 0, s);
         }
-
+        public void setLable7(string s)
+        {
+            setLog sl = new setLog(delegate(int number, string text)
+            {
+                label7.Text = text;
+            });
+            textBox2.Invoke(sl, 0, s);
+        }
         public delegate void SetPicture(Image<Gray, byte> dest);
         public void setImage1(Image<Gray, byte> dest)
         {
@@ -598,11 +611,8 @@ namespace EmguTesseract
             {
                 imageBox2.Image = d;
             });
-            textBox1.Invoke(sl,dest);
+            textBox1.Invoke(sl, dest);
         }
-#endregion
-
-        #region tools
         private void button2_Click(object sender, EventArgs e)
         {
             gForceToStop = true; 
@@ -662,15 +672,19 @@ namespace EmguTesseract
             MessageBox.Show("merge box files succeed!");
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            gForceToStop = false;
+            ThreadStart starter = delegate { start(); };
+            new Thread(starter).Start();
+        }
+
+
         #endregion
 
-
-
-
-
-
-
     }
+
+
 
     #region LicensePlateDetector
 
