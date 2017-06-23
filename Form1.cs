@@ -23,6 +23,7 @@ namespace EmguTesseract
 {
     public partial class Form1 : Form
     {
+        static string tessdataPath = @"C:\Users\Teemo\Documents\Visual Studio 2015\Projects\EmguTesseract\tessdata";
         string path;
         string fileName;
         decimal succeed = 0;
@@ -251,7 +252,7 @@ namespace EmguTesseract
          //       setImage2(dest);
 
                 using (var engine = new TesseractEngine(
-                    @"C:\Users\yangyiru\Documents\visual studio 2012\Projects\EmguTesseract\EmguTesseract\tessdata",
+                    tessdataPath,
                     language, EngineMode.Default))
                 {
                     engine.SetVariable("tessedit_char_whitelist", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -679,7 +680,42 @@ namespace EmguTesseract
             new Thread(starter).Start();
         }
 
+        string[] files;
+        private void button4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                FolderBrowserDialog dialog = new FolderBrowserDialog();
+                dialog.SelectedPath = path;
+                dialog.Description = "choose image folder";
+                if (dialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath))
+                {
+                    files = Directory.GetFiles(dialog.SelectedPath);
+                }
+                else
+                {
+                    return;
+                }
 
+                gForceToStop = false;
+                ThreadStart starter = delegate { startInFolder(); };
+                new Thread(starter).Start();
+            }
+            catch (Exception ex)
+            {
+                setLogT(0, ex.Message);
+            }
+        }
+        private void startInFolder()
+        {
+
+            foreach (string f in files)
+            {
+                processOCR(f);
+                Thread.Sleep(800);
+            }
+
+        }
         #endregion
 
     }
